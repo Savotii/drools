@@ -1,0 +1,16 @@
+package test_package
+
+#as well as in Java import statement
+import com.test.package.Class;
+
+rule "Name of your rule"
+    #required block
+    when
+        instance_of_the_class : Class(filed == "something")
+        another_instance_of_the_class : AnotherClass();
+    then
+        instance_of_the_class.setSomething(true/false/other values);
+        another_instance_of_the_class.setSomething(true/false/other values);
+		System.out.println("comment");
+#required
+end
