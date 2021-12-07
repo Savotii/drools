@@ -1,6 +1,6 @@
 package com.spirent.drools.repository;
 
-import com.spirent.drools.model.RuleModel;
+import com.spirent.drools.model.rule.RuleModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -16,15 +16,20 @@ import javax.validation.constraints.NotNull;
 public class Kpi {
     @Schema(description = "Latency.")
     @NotNull
-    private double latency;
+    private Double latency;
 
     @Schema(description = "Phase.")
     @NotNull
     private KpiPhase phase;
 
     @Schema(description = "Location.")
+    @NotNull
     private Location location;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private boolean failed;
+
+    @Schema(description = "Request time. Timestamp")
+    @NotNull
+    private Long timestamp;
 }

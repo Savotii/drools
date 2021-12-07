@@ -1,4 +1,4 @@
-package com.spirent.drools.model;
+package com.spirent.drools.model.rule;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -12,7 +12,7 @@ import javax.persistence.Table;
 import java.io.Serial;
 import java.io.Serializable;
 
-@Table(name = "rule")
+@Table(name = "rules")
 @Entity
 @Getter
 @Setter

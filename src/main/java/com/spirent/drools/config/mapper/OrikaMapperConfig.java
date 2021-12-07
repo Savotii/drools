@@ -1,8 +1,10 @@
-package com.spirent.drools.config;
+package com.spirent.drools.config.mapper;
 
 import com.spirent.drools.converter.RuleContentConverter;
+import com.spirent.drools.dto.kpi.Kpi;
 import com.spirent.drools.dto.rules.Rule;
-import com.spirent.drools.model.RuleModel;
+import com.spirent.drools.model.kpi.KpiModel.KpiModel;
+import com.spirent.drools.model.rule.RuleModel;
 import lombok.RequiredArgsConstructor;
 import ma.glasnost.orika.CustomMapper;
 import ma.glasnost.orika.MapperFactory;
@@ -23,6 +25,9 @@ public class OrikaMapperConfig extends ConfigurableMapper {
         factory.classMap(RuleModel.class, Rule.class)
                 .byDefault()
                 .customize(new RuleModelToRuleConverter())
+                .register();
+        factory.classMap(Kpi.class, KpiModel.class)
+                .byDefault()
                 .register();
     }
 

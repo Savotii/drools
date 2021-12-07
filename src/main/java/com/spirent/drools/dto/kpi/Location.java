@@ -8,6 +8,5 @@ import lombok.Data;
  */
 @Data
 public class Location {
-    private long latitude;
-    private long longitude;
+    private String code;
 }

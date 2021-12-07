@@ -1,6 +1,5 @@
 package com.spirent.drools.model;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,7 +23,6 @@ import java.io.Serializable;
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode
 @NoArgsConstructor
 @Accessors(chain = true)
 public class LocationModel implements Serializable {
@@ -34,8 +32,5 @@ public class LocationModel implements Serializable {
     private Long id;
 
     @Column
-    private long latitude;
-
-    @Column
-    private long longitude;
+    private String code;
 }

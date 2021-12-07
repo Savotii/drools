@@ -1,11 +1,22 @@
 package com.spirent.drools.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.spirent.drools.config.mapper.OrikaMapperConfig;
 import com.spirent.drools.dto.kpi.Kpi;
+import com.spirent.drools.messagebroker.producer.Producer;
+import com.spirent.drools.model.kpi.KpiModel.KpiModel;
+import com.spirent.drools.repository.KpiRepository;
 import com.spirent.drools.service.KpiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kie.api.runtime.KieSession;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
+import java.util.Set;
 
 /**
  * @author ysavi2
@@ -17,14 +28,36 @@ import org.springframework.stereotype.Service;
 public class KpiServiceImpl implements KpiService {
 
     private final RulesServiceImpl rulesServiceImpl;
+    private final KpiRepository kpiRepository;
+    private final Producer kafkaProducer;
+    private final ObjectMapper mapper;
+    private final OrikaMapperConfig orikaMapper;
 
     @Override
-    public Kpi validateRules(Kpi model) {
+    public Kpi validateRules(Kpi kpiRequest) {
         rulesServiceImpl.reload();
         KieSession session = RulesServiceImpl.getKieContainer().newKieSession();
-        session.insert(model);
+        session.insert(kpiRequest);
         session.fireAllRules();
         session.dispose();
-        return model;
+
+        if (kpiRequest.isFailed()) {
+            kafkaProducer.sendFailureMessage(convertToJson(kpiRequest));
+        } else {
+            kafkaProducer.sendSuccessMessage(convertToJson(kpiRequest));
+        }
+
+        // just put it into the db.
+        kpiRepository.save(orikaMapper.map(kpiRequest, KpiModel.class));
+        return kpiRequest;
+    }
+
+    private String convertToJson(Kpi model) {
+        try {
+            return mapper.writeValueAsString(model);
+        } catch (JsonProcessingException e) {
+            log.error("[KpiServiceImpl] convert to json failed.", e);
+            return null;
+        }
     }
 }

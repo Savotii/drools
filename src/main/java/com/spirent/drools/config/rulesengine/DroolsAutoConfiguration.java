@@ -1,4 +1,4 @@
-package com.spirent.drools.config;
+package com.spirent.drools.config.rulesengine;
 
 import com.spirent.drools.service.impl.RulesServiceImpl;
 import org.kie.api.KieBase;

@@ -1,9 +1,9 @@
 package com.spirent.drools.service.impl;
 
-import com.spirent.drools.config.OrikaMapperConfig;
+import com.spirent.drools.config.mapper.OrikaMapperConfig;
 import com.spirent.drools.converter.RuleContentConverter;
 import com.spirent.drools.dto.rules.Rule;
-import com.spirent.drools.model.RuleModel;
+import com.spirent.drools.model.rule.RuleModel;
 import com.spirent.drools.repository.RuleRepository;
 import com.spirent.drools.service.RulesService;
 import lombok.RequiredArgsConstructor;
