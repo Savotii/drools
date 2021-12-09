@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spirent.drools.config.mapper.OrikaMapperConfig;
 import com.spirent.drools.dto.kpi.Kpi;
 import com.spirent.drools.dto.rules.global.GlobalBoolean;
+import com.spirent.drools.dto.rules.global.GlobalRuleCounter;
 import com.spirent.drools.messagebroker.producer.Producer;
 import com.spirent.drools.model.kpi.KpiModel.KpiModel;
 import com.spirent.drools.repository.KpiRepository;
@@ -33,7 +34,7 @@ public class KpiServiceImpl implements KpiService {
     public Kpi validateRules(Kpi kpiRequest) {
         rulesServiceImpl.reload();
         KieSession session = RulesServiceImpl.getKieContainer().newKieSession();
-        session.setGlobal("flag", new GlobalBoolean());
+        setGlobalVariables(session);
         session.insert(kpiRequest);
         session.fireAllRules();
         session.dispose();
@@ -47,6 +48,11 @@ public class KpiServiceImpl implements KpiService {
         // just put it into the db.
         kpiRepository.save(orikaMapper.map(kpiRequest, KpiModel.class));
         return kpiRequest;
+    }
+
+    private void setGlobalVariables(KieSession session) {
+        session.setGlobal("flag", new GlobalBoolean());
+        session.setGlobal("counter", new GlobalRuleCounter());
     }
 
     private String convertToJson(Kpi model) {

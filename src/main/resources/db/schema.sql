@@ -6,6 +6,7 @@ create table kpis
 (
     id integer not null primary key,
     "phase" text COLLATE pg_catalog."default",
+    "session_id" text COLLATE pg_catalog."default" not null,
     "timestamp" integer,
     "failed" boolean,
     "location_id" integer,

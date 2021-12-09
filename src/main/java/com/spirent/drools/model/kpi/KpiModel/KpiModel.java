@@ -32,6 +32,9 @@ public class KpiModel implements Serializable {
     @GeneratedValue
     private Long id;
 
+    @Column
+    private String sessionId;
+
     @Enumerated(EnumType.ORDINAL)
     @Column
     private KpiPhase phase;

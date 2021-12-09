@@ -116,7 +116,7 @@ public class RuleContentConverterImpl implements RuleContentConverter {
     }
 
     private void convertAndSetGlobalVariablesStringToContent(RuleContent convertedContent, String value) {
-        convertedContent.getGlobalVariables().add(value.replace(GLOBAL, StringUtils.EMPTY).trim());
+        convertedContent.getGlobalVariables().add(value.replace(GLOBAL.concat(StringUtils.SPACE), StringUtils.EMPTY).trim());
     }
 
     private void convertAndSetImportStringToContent(RuleContent convertedContent, String value) {
@@ -128,7 +128,7 @@ public class RuleContentConverterImpl implements RuleContentConverter {
     }
 
     private String getRuleNameFromPattern(String value) {
-        return value.replace(RULE, StringUtils.EMPTY).replace(QUOTE, QUOTE).trim();
+        return value.replace(RULE, StringUtils.EMPTY).replace(QUOTE, StringUtils.EMPTY).trim();
     }
 
     private void convertAndSetWhenStringToContent(RuleClause clause, String value) {

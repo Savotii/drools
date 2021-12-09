@@ -18,6 +18,10 @@ public class Kpi {
     @NotNull
     private Double latency;
 
+    @Schema(description = "Session id.")
+    @NotNull
+    private String sessionId;
+
     @Schema(description = "Phase.")
     @NotNull
     private KpiPhase phase;
@@ -32,4 +36,6 @@ public class Kpi {
     @Schema(description = "Request time. Timestamp")
     @NotNull
     private Long timestamp;
+
+    private String comment;
 }
