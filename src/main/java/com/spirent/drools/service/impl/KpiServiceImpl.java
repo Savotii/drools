@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spirent.drools.config.mapper.OrikaMapperConfig;
 import com.spirent.drools.dto.kpi.Kpi;
+import com.spirent.drools.dto.rules.global.GlobalBoolean;
 import com.spirent.drools.messagebroker.producer.Producer;
 import com.spirent.drools.model.kpi.KpiModel.KpiModel;
 import com.spirent.drools.repository.KpiRepository;
@@ -12,11 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kie.api.runtime.KieSession;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
-
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
-import java.util.Set;
 
 /**
  * @author ysavi2
@@ -37,6 +33,7 @@ public class KpiServiceImpl implements KpiService {
     public Kpi validateRules(Kpi kpiRequest) {
         rulesServiceImpl.reload();
         KieSession session = RulesServiceImpl.getKieContainer().newKieSession();
+        session.setGlobal("flag", new GlobalBoolean());
         session.insert(kpiRequest);
         session.fireAllRules();
         session.dispose();

@@ -6,9 +6,10 @@ create table kpis
 (
     id integer not null primary key,
     "phase" text COLLATE pg_catalog."default",
-    "timestamp" timestamp without time zone,
+    "timestamp" integer,
     "failed" boolean,
-    "location_id" integer
+    "location_id" integer,
+    "latency" double precision
 );
 
 create table locations

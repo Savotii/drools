@@ -1,7 +1,7 @@
 package com.spirent.drools.repository;
 
 import com.spirent.drools.model.kpi.KpiModel.KpiModel;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -9,5 +9,5 @@ import org.springframework.stereotype.Repository;
  * @since 06.12.2021
  */
 @Repository
-public interface KpiRepository extends CrudRepository<KpiModel, Long> {
+public interface KpiRepository extends JpaRepository<KpiModel, Long> {
 }

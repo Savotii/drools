@@ -1,15 +1,21 @@
 package com.spirent.drools.converter.impl;
 
 import com.spirent.drools.converter.RuleContentConverter;
+import com.spirent.drools.dto.rules.RuleClause;
 import com.spirent.drools.dto.rules.RuleContent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.drools.compiler.lang.DroolsSoftKeywords.ATTRIBUTES;
 import static org.drools.compiler.lang.DroolsSoftKeywords.END;
+import static org.drools.compiler.lang.DroolsSoftKeywords.GLOBAL;
 import static org.drools.compiler.lang.DroolsSoftKeywords.IMPORT;
 import static org.drools.compiler.lang.DroolsSoftKeywords.PACKAGE;
 import static org.drools.compiler.lang.DroolsSoftKeywords.RULE;
@@ -37,13 +43,15 @@ public class RuleContentConverterImpl implements RuleContentConverter {
         }
 
         RuleContent convertedContent = new RuleContent();
+        Map<String, RuleClause> clauses = new LinkedHashMap<>();
         if (!content.contains(LINE_SEPARATOR_SYMBOL)) {
             //todo should be thought the approach of the deserializing.
             return convertedContent;
         }
 
+        String previousRuleName = StringUtils.EMPTY;
         var splitted = content.split(LINE_SEPARATOR_SYMBOL);
-        for(int i = 0; i < splitted.length -1; i++) {
+        for (int i = 0; i < splitted.length - 1; i++) {
             String block = clearFirstSpecialSymbols(splitted[i]);
 
             String[] splittedBlock = block.split(StringUtils.SPACE);
@@ -51,13 +59,23 @@ public class RuleContentConverterImpl implements RuleContentConverter {
             switch (blockType) {
                 case PACKAGE -> convertAndSetPackageStringToContent(convertedContent, block);
                 case IMPORT -> convertAndSetImportStringToContent(convertedContent, block);
+                case GLOBAL -> convertAndSetGlobalVariablesStringToContent(convertedContent, block);
                 case ATTRIBUTES -> convertAndSetAttributesStringToContent(convertedContent, block);
-                case RULE -> convertAndSetRuleStringToContent(convertedContent, block);
-                case WHEN -> convertAndSetWhenStringToContent(convertedContent, block);
-                case THEN -> convertAndSetThenStringToContent(convertedContent, block);
-                default -> System.out.println("Nothing to convert yet.");
+
+                case RULE -> {
+                    previousRuleName = getRuleNameFromPattern(block);
+                    RuleClause clause = clauses.getOrDefault(previousRuleName, new RuleClause());
+                    clause.setRuleName(previousRuleName);
+                    clauses.putIfAbsent(previousRuleName, clause);
+                }
+                case WHEN -> convertAndSetWhenStringToContent(clauses.get(previousRuleName), block);
+                case THEN -> convertAndSetThenStringToContent(clauses.get(previousRuleName), block);
+
+                default -> log.info("Nothing to convert yet.");
             }
         }
+
+        convertedContent.setClauses(new LinkedList<>(clauses.values()));
         return convertedContent;
     }
 
@@ -71,18 +89,16 @@ public class RuleContentConverterImpl implements RuleContentConverter {
         StringBuilder sb = new StringBuilder();
         fillPackage(sb, content.getHeaderPackage());
         fillImports(sb, content.getImports());
+        fillGlobalVariables(sb, content.getGlobalVariables());
         fillAttributes(sb, content.getAttributes());
-        fillRuleName(sb, content.getRuleName());
-        fillWhenClause(sb, content.getWhenClause());
-        fillThenClause(sb, content.getThenClause());
-        fillEndBlock(sb);
+        fillClauses(sb, content.getClauses());
         return sb.toString();
     }
 
     @Override
     public String clearSpecialSymbols(String content) {
         return content.replace(LINE_SEPARATOR_SYMBOL, StringUtils.SPACE)
-                .replace( QUOTE + QUOTE, QUOTE);
+                .replace(QUOTE + QUOTE, QUOTE);
     }
 
     // todo find out is this block is mandatory?
@@ -99,6 +115,10 @@ public class RuleContentConverterImpl implements RuleContentConverter {
         convertedContent.setHeaderPackage(value.replace(PACKAGE, StringUtils.EMPTY).trim());
     }
 
+    private void convertAndSetGlobalVariablesStringToContent(RuleContent convertedContent, String value) {
+        convertedContent.getGlobalVariables().add(value.replace(GLOBAL, StringUtils.EMPTY).trim());
+    }
+
     private void convertAndSetImportStringToContent(RuleContent convertedContent, String value) {
         convertedContent.getImports().add(value.replace(IMPORT, StringUtils.EMPTY).trim());
     }
@@ -107,16 +127,16 @@ public class RuleContentConverterImpl implements RuleContentConverter {
         convertedContent.getAttributes().add(value.replace(ATTRIBUTES, StringUtils.EMPTY).trim());
     }
 
-    private void convertAndSetRuleStringToContent(RuleContent convertedContent, String value) {
-        convertedContent.setRuleName(value.replace(RULE, StringUtils.EMPTY).replace(QUOTE, QUOTE).trim());
+    private String getRuleNameFromPattern(String value) {
+        return value.replace(RULE, StringUtils.EMPTY).replace(QUOTE, QUOTE).trim();
     }
 
-    private void convertAndSetWhenStringToContent(RuleContent convertedContent, String value) {
-        convertedContent.setWhenClause(value.replace(WHEN, StringUtils.EMPTY).trim());
+    private void convertAndSetWhenStringToContent(RuleClause clause, String value) {
+        clause.setWhenClause(value.replace(WHEN, StringUtils.EMPTY).trim());
     }
 
-    private void convertAndSetThenStringToContent(RuleContent convertedContent, String value) {
-        convertedContent.setThenClause(value.replace(THEN, StringUtils.EMPTY).trim());
+    private void convertAndSetThenStringToContent(RuleClause clause, String value) {
+        clause.setThenClause(value.replace(THEN, StringUtils.EMPTY).trim());
     }
 
     // todo find out is this block is mandatory?
@@ -129,9 +149,41 @@ public class RuleContentConverterImpl implements RuleContentConverter {
         ruleImports.forEach(i -> sb.append(IMPORT).append(StringUtils.SPACE).append(i).append(LINE_SEPARATOR_SYMBOL).append(BREAK_LINE_SYMBOL));
     }
 
+    private void fillGlobalVariables(StringBuilder sb, List<String> globalVariables) {
+        if (globalVariables.isEmpty()) {
+            return;
+        }
+
+        //todo should be validated.
+        globalVariables.forEach(i -> sb.append(GLOBAL).append(StringUtils.SPACE).append(i).append(LINE_SEPARATOR_SYMBOL).append(BREAK_LINE_SYMBOL));
+    }
+
     //todo
     private void fillAttributes(StringBuilder sb, Set<String> ruleAttributes) {
+        //stub
+    }
 
+    private void fillClauses(StringBuilder sb, List<RuleClause> clauses) {
+        if (clauses.isEmpty()) {
+            return;
+        }
+
+        /* Example.
+         * rule "Name of your rule"
+         * when
+         *   instance_of_the_class : Class(filed == "something")
+         *   another_instance_of_the_class : AnotherClass();
+         * then
+         *   instance_of_the_class.setSomething(true/false/other values);
+         *   another_instance_of_the_class.setSomething(true/false/other values);
+         * end
+         */
+        clauses.forEach(cl -> {
+            fillRuleName(sb, cl.getRuleName());
+            fillWhenClause(sb, cl.getWhenClause());
+            fillThenClause(sb, cl.getThenClause());
+            fillEndBlock(sb);
+        });
     }
 
     // todo find out is this block is mandatory?
@@ -157,6 +209,6 @@ public class RuleContentConverterImpl implements RuleContentConverter {
     }
 
     private void fillEndBlock(StringBuilder sb) {
-        sb.append(END);
+        sb.append(END).append(StringUtils.SPACE).append(LINE_SEPARATOR_SYMBOL).append(BREAK_LINE_SYMBOL);
     }
 }

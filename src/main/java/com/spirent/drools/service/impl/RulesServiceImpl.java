@@ -17,6 +17,7 @@ import org.kie.api.runtime.KieContainer;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,7 +57,7 @@ public class RulesServiceImpl implements RulesService {
     public void updateRule(Rule rule) {
         ruleRepository.findById(rule.getId())
                 .ifPresentOrElse(ruleModel -> ruleRepository.save(mergeModels(ruleModel, rule)), () -> {
-                            //todo something.
+                            /* todo something. */
                         });
         reload();
     }
@@ -67,7 +68,7 @@ public class RulesServiceImpl implements RulesService {
                         .setRuleKey(update.getName())
                         .setVersion(update.getVersion())
                         .setCreateTime(update.getCreateTime())
-                        .setLastModifyTime(update.getLastModifyTime())
+                        .setLastModifyTime(update.getLastModifyTime() == null ? Instant.now().toString() : update.getLastModifyTime())
                         .setContent(contentConverter.convertToString(update.getRuleContent()));
     }
 
