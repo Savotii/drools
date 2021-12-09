@@ -14,6 +14,7 @@ import org.kie.api.builder.KieFileSystem;
 import org.kie.api.builder.KieRepository;
 import org.kie.api.builder.Message;
 import org.kie.api.runtime.KieContainer;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -73,7 +74,7 @@ public class RulesServiceImpl implements RulesService {
     }
 
     public List<Rule> getAllRules() {
-        List<RuleModel> result = ruleRepository.findAll();
+        List<RuleModel> result = ruleRepository.findAll(Sort.by(Sort.Order.desc("id")));
         result.forEach(r -> orikaMapper.map(r, Rule.class));
         return orikaMapper.mapAsList(result, Rule.class);
     }
