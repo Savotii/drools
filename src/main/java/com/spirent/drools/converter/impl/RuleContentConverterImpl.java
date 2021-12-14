@@ -5,6 +5,7 @@ import com.spirent.drools.dto.rules.RuleClause;
 import com.spirent.drools.dto.rules.RuleContent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.drools.modelcompiler.builder.generator.RuleContext;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.drools.compiler.lang.DroolsSoftKeywords.ATTRIBUTES;
+import static org.drools.compiler.lang.DroolsSoftKeywords.DIALECT;
 import static org.drools.compiler.lang.DroolsSoftKeywords.END;
 import static org.drools.compiler.lang.DroolsSoftKeywords.GLOBAL;
 import static org.drools.compiler.lang.DroolsSoftKeywords.IMPORT;
@@ -61,7 +63,7 @@ public class RuleContentConverterImpl implements RuleContentConverter {
                 case IMPORT -> convertAndSetImportStringToContent(convertedContent, block);
                 case GLOBAL -> convertAndSetGlobalVariablesStringToContent(convertedContent, block);
                 case ATTRIBUTES -> convertAndSetAttributesStringToContent(convertedContent, block);
-
+                case DIALECT -> convertAndSetDialectStringToContent(convertedContent, block);
                 case RULE -> {
                     previousRuleName = getRuleNameFromPattern(block);
                     RuleClause clause = clauses.getOrDefault(previousRuleName, new RuleClause());
@@ -70,7 +72,6 @@ public class RuleContentConverterImpl implements RuleContentConverter {
                 }
                 case WHEN -> convertAndSetWhenStringToContent(clauses.get(previousRuleName), block);
                 case THEN -> convertAndSetThenStringToContent(clauses.get(previousRuleName), block);
-
                 default -> log.info("Nothing to convert yet.");
             }
         }
@@ -91,6 +92,7 @@ public class RuleContentConverterImpl implements RuleContentConverter {
         fillImports(sb, content.getImports());
         fillGlobalVariables(sb, content.getGlobalVariables());
         fillAttributes(sb, content.getAttributes());
+        fillDialect(sb, content.getDialect());
         fillClauses(sb, content.getClauses());
         return sb.toString();
     }
@@ -127,6 +129,10 @@ public class RuleContentConverterImpl implements RuleContentConverter {
         convertedContent.getAttributes().add(value.replace(ATTRIBUTES, StringUtils.EMPTY).trim());
     }
 
+    private void convertAndSetDialectStringToContent(RuleContent convertedContent, String value) {
+        convertedContent.setDialect(RuleContext.RuleDialect.valueOf(value.replace(DIALECT, StringUtils.EMPTY).replace(QUOTE, StringUtils.EMPTY).trim().toUpperCase()));
+    }
+
     private String getRuleNameFromPattern(String value) {
         return value.replace(RULE, StringUtils.EMPTY).replace(QUOTE, StringUtils.EMPTY).trim();
     }
@@ -161,6 +167,14 @@ public class RuleContentConverterImpl implements RuleContentConverter {
     //todo
     private void fillAttributes(StringBuilder sb, Set<String> ruleAttributes) {
         //stub
+    }
+
+    private void fillDialect(StringBuilder sb, RuleContext.RuleDialect dialect) {
+        if (dialect == null) {
+            return;
+        }
+
+        sb.append(DIALECT).append(StringUtils.SPACE).append(wrapByQuotes(dialect.name().toLowerCase())).append(LINE_SEPARATOR_SYMBOL).append(BREAK_LINE_SYMBOL);
     }
 
     private void fillClauses(StringBuilder sb, List<RuleClause> clauses) {

@@ -30,7 +30,6 @@ public class Kpi {
     @NotNull
     private Location location;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private boolean failed;
 
     @Schema(description = "Request time. Timestamp")
@@ -38,4 +37,9 @@ public class Kpi {
     private Long timestamp;
 
     private String comment;
+
+    public void setIsFailed(boolean failed) {
+        System.out.println(" FAILED : {} " + failed);
+        this.failed = failed;
+    }
 }

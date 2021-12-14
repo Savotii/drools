@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.drools.modelcompiler.builder.generator.RuleContext;
 
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -61,6 +62,8 @@ public class RuleContent {
             example = "no-loop",
             type = "array")
     private Set<String> attributes = new LinkedHashSet<>();
+
+    private RuleContext.RuleDialect dialect = RuleContext.RuleDialect.JAVA;
 
     @Schema(description = "Clauses which may be defined in order.")
     private List<RuleClause> clauses = new LinkedList<>();

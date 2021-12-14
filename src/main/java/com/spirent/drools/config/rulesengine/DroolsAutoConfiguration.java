@@ -31,7 +31,7 @@ public class DroolsAutoConfiguration {
     @ConditionalOnMissingBean(KieFileSystem.class)
     public KieFileSystem kieFileSystem() throws IOException {
         KieFileSystem kieFileSystem = getKieServices().newKieFileSystem();
-        Resource [] resourceArray = getRuleFiles();//获取文件并加载
+        Resource [] resourceArray = getRuleFiles();
         for (Resource file : resourceArray) {
             kieFileSystem.write(ResourceFactory.newClassPathResource(RULES_PATH + file.getFilename(), "UTF-8"));
         }
