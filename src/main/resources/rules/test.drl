@@ -1,0 +1,15 @@
+import com.spirent.drools.dto.kpi.Kpi;
+ import com.spirent.drools.dto.kpi.KpiPhase;
+ import java.time.Instant;
+ global com.spirent.drools.dto.rules.globals.GlobalBoolean flag;
+ dialect "java"
+
+ rule "main"
+ when kpi: Kpi((latency > 4 && phase == KpiPhase.SECOND))
+ then kpi.setFailed(true); flag.setIsPassed(false);
+ end
+
+ rule "dependent on main"
+ when kpi: Kpi((latency <= (4 + (4*0.1)) && phase == KpiPhase.SECOND) && !flag.isPassed())
+ then kpi.setFailed(false); flag.setIsPassed(false);
+ end

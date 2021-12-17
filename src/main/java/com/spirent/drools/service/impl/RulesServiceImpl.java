@@ -9,6 +9,7 @@ import com.spirent.drools.service.RulesEngineService;
 import com.spirent.drools.service.RulesService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
