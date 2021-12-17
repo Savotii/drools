@@ -4,15 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spirent.drools.config.mapper.OrikaMapperConfig;
 import com.spirent.drools.dto.kpi.Kpi;
-import com.spirent.drools.dto.rules.global.GlobalBoolean;
-import com.spirent.drools.dto.rules.global.GlobalRuleCounter;
 import com.spirent.drools.messagebroker.producer.Producer;
 import com.spirent.drools.model.kpi.KpiModel.KpiModel;
 import com.spirent.drools.repository.KpiRepository;
 import com.spirent.drools.service.KpiService;
+import com.spirent.drools.service.RulesEngineService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.kie.api.runtime.KieSession;
 import org.springframework.stereotype.Service;
 
 /**
@@ -24,21 +22,15 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KpiServiceImpl implements KpiService {
 
-    private final RulesServiceImpl rulesServiceImpl;
     private final KpiRepository kpiRepository;
     private final Producer kafkaProducer;
     private final ObjectMapper mapper;
     private final OrikaMapperConfig orikaMapper;
+    private final RulesEngineService droolsEngine;
 
     @Override
     public Kpi validateRules(Kpi kpiRequest) {
-        rulesServiceImpl.reload();
-        KieSession session = RulesServiceImpl.getKieContainer().newKieSession();
-        setGlobalVariables(session);
-        session.insert(kpiRequest);
-        session.fireAllRules();
-        session.dispose();
-
+        droolsEngine.fireAllRules(kpiRequest);
         if (kpiRequest.isFailed()) {
             kafkaProducer.sendFailureMessage(convertToJson(kpiRequest));
         } else {
@@ -50,11 +42,6 @@ public class KpiServiceImpl implements KpiService {
         return kpiRequest;
     }
 
-    private void setGlobalVariables(KieSession session) {
-        session.setGlobal("flag", new GlobalBoolean());
-        session.setGlobal("counter", new GlobalRuleCounter());
-    }
-
     private String convertToJson(Kpi model) {
         try {
             return mapper.writeValueAsString(model);
@@ -63,4 +50,5 @@ public class KpiServiceImpl implements KpiService {
             return null;
         }
     }
+
 }

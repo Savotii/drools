@@ -1,83 +1,55 @@
 package com.spirent.drools.config.rulesengine;
 
-import com.spirent.drools.service.impl.RulesServiceImpl;
 import org.kie.api.KieBase;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
 import org.kie.api.builder.KieFileSystem;
-import org.kie.api.builder.KieModule;
 import org.kie.api.builder.KieRepository;
-import org.kie.api.builder.ReleaseId;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
-import org.kie.internal.io.ResourceFactory;
 import org.kie.spring.KModuleBeanFactoryPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
-
-import java.io.IOException;
-
+import org.springframework.core.annotation.Order;
 
 @Configuration
+@Order(3)
 public class DroolsAutoConfiguration {
-    
-    private static final String RULES_PATH = "rules/";
-    
+
     @Bean
     @ConditionalOnMissingBean(KieFileSystem.class)
-    public KieFileSystem kieFileSystem() throws IOException {
-        KieFileSystem kieFileSystem = getKieServices().newKieFileSystem();
-        Resource [] resourceArray = getRuleFiles();
-        for (Resource file : resourceArray) {
-            kieFileSystem.write(ResourceFactory.newClassPathResource(RULES_PATH + file.getFilename(), "UTF-8"));
-        }
-        return kieFileSystem;
+    public KieFileSystem kieFileSystem() {
+        return getKieServices().newKieFileSystem();
     }
 
-    private Resource[] getRuleFiles() throws IOException {
-        ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
-        return resourcePatternResolver.getResources(RULES_PATH + "**/*.drl");
-    }
-    
     @Bean
     @ConditionalOnMissingBean(KieContainer.class)
-    public KieContainer kieContainer() throws IOException {
+    public KieContainer kieContainer() {
         final KieRepository kieRepository = getKieServices().getRepository();
-        
-        kieRepository.addKieModule(new KieModule() {
-            public ReleaseId getReleaseId() {
-                return kieRepository.getDefaultReleaseId();
-            }
-        });
-        
+
+        kieRepository.addKieModule(kieRepository::getDefaultReleaseId);
+
         KieFileSystem kieFileSystem = kieFileSystem();
         KieBuilder kieBuilder = getKieServices().newKieBuilder(kieFileSystem);
         kieBuilder.buildAll();
 
-        KieContainer kieContainer=getKieServices().newKieContainer(kieRepository.getDefaultReleaseId());
-
-        RulesServiceImpl.setKieContainer(kieContainer);
-        
-        return kieContainer;
+        return getKieServices().newKieContainer(kieRepository.getDefaultReleaseId());
     }
-    
+
     private KieServices getKieServices() {
         return KieServices.Factory.get();
     }
-    
+
     @Bean
     @ConditionalOnMissingBean(KieBase.class)
-    public KieBase kieBase() throws IOException {
+    public KieBase kieBase() {
         return kieContainer().getKieBase();
     }
-    
+
     @Bean
     @ConditionalOnMissingBean(KieSession.class)
-    public KieSession kieSession() throws IOException {
+    public KieSession kieSession() {
         return kieContainer().newKieSession();
     }
 

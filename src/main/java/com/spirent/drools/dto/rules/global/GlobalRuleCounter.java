@@ -3,6 +3,7 @@ package com.spirent.drools.dto.rules.global;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -14,24 +15,30 @@ import java.util.Map;
 @Getter
 @Setter
 @NoArgsConstructor
+@Slf4j
 public class GlobalRuleCounter {
     private static final Map<String, Integer> counter = new LinkedHashMap<>();
 
     public Integer get(String key) {
-        return counter.getOrDefault(key, 0);
+        Integer result = counter.getOrDefault(key, 0);
+        log.info("Get {} result {} ", key, result);
+        return result;
     }
 
     public void update(String key) {
+        log.info(" Update {} ", key);
         counter.compute(key, (k, v) -> (v == null) ? 1 : ++v);
     }
 
     public Integer updateAndGet(String key) {
         var result = counter.compute(key, (k, v) -> (v == null) ? 1 : ++v);
-        System.out.println(result);
+        log.info("UpdateAndGet {} result {}", key, result);
         return result;
     }
 
     public boolean checkClause(String key) {
-        return updateAndGet(key) % 2 == 0;
+        boolean result = updateAndGet(key) % 2 == 0;
+        log.info("CheckClause {} result {}", key, result);
+        return result;
     }
 }

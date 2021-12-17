@@ -5,62 +5,58 @@ import com.spirent.drools.converter.RuleContentConverter;
 import com.spirent.drools.dto.rules.Rule;
 import com.spirent.drools.model.rule.RuleModel;
 import com.spirent.drools.repository.RuleRepository;
+import com.spirent.drools.service.RulesEngineService;
 import com.spirent.drools.service.RulesService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.kie.api.KieServices;
-import org.kie.api.builder.KieBuilder;
-import org.kie.api.builder.KieFileSystem;
-import org.kie.api.builder.KieRepository;
-import org.kie.api.builder.Message;
-import org.kie.api.runtime.KieContainer;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
- * Created by neo on 17/7/31.
+ * @author ysavi2
+ * @since 10.12.2021
  */
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class RulesServiceImpl implements RulesService {
-
-    private static KieContainer kieContainer;
     private final OrikaMapperConfig orikaMapper;
     private final RuleContentConverter contentConverter;
     private final RuleRepository ruleRepository;
+    private final RulesEngineService droolsEngine;
 
-    public static void setKieContainer(KieContainer newContainer) {
-        kieContainer = newContainer;
+    @PostConstruct
+    public void uploadAllRulesFromDb() {
+        droolsEngine.addRulesToTheFileSystem(getRulesContent(ruleRepository.findAll()));
     }
 
-    public static KieContainer getKieContainer() {
-        return kieContainer;
-    }
-
-    public void reload(){
-        setKieContainer(loadContainerFromString(ruleRepository.findAll()));
+    private Map<String, String> getRulesContent(List<RuleModel> ruleModels) {
+        return ruleModels.stream()
+                .collect(Collectors.toMap(RuleModel::getRuleKey, model -> contentConverter.clearSpecialSymbols(model.getContent())));
     }
 
     public Rule saveRule(Rule rule) {
-        RuleModel result = ruleRepository.save(orikaMapper.map(rule, RuleModel.class));
-        reload();
-        return orikaMapper.map(result, Rule.class);
+        RuleModel model = ruleRepository.save(orikaMapper.map(rule, RuleModel.class));
+        reloadByRule(model);
+        return orikaMapper.map(model, Rule.class);
     }
 
     @Transactional
     public void updateRule(Rule rule) {
-        ruleRepository.findById(rule.getId())
-                .ifPresentOrElse(ruleModel -> ruleRepository.save(mergeModels(ruleModel, rule)), () -> {
-                            /* todo something. */
-                        });
-        reload();
+        Optional<RuleModel> ruleModel = ruleRepository.findById(rule.getId());
+
+        if (ruleModel.isPresent()) {
+            RuleModel model = ruleRepository.save(mergeModels(ruleModel.get(), rule));
+            reloadByRule(model);
+        }
     }
 
     private RuleModel mergeModels(RuleModel origin, Rule update) {
@@ -79,35 +75,16 @@ public class RulesServiceImpl implements RulesService {
         return orikaMapper.mapAsList(result, Rule.class);
     }
 
-    private  KieContainer loadContainerFromString(List<RuleModel> ruleModels) {
-        long startTime = System.currentTimeMillis();
-        KieServices ks = KieServices.Factory.get();
-        KieRepository kr = ks.getRepository();
-        KieFileSystem kfs = ks.newKieFileSystem();
-
-        for (RuleModel ruleModel : ruleModels) {
-            String  drl= contentConverter.clearSpecialSymbols(ruleModel.getContent());
-            kfs.write("src/main/resources/" + drl.hashCode() + ".drl", drl);
-        }
-
-        KieBuilder kb = ks.newKieBuilder(kfs);
-
-        kb.buildAll();
-        if (kb.getResults().hasMessages(Message.Level.ERROR)) {
-            throw new RuntimeException("Build Errors:\n" + kb.getResults().toString());
-        }
-        long endTime = System.currentTimeMillis();
-        log.info("Time to build rules : {} ms.",(endTime - startTime) );
-        startTime = System.currentTimeMillis();
-        KieContainer kContainer = ks.newKieContainer(kr.getDefaultReleaseId());
-        log.info("Time to load container: {} ms.", (System.currentTimeMillis() - startTime));
-        return kContainer;
+    private void reloadByRule(RuleModel ruleModel) {
+        droolsEngine.addRuleToTheFileSystem(ruleModel.getRuleKey(), contentConverter.clearSpecialSymbols(ruleModel.getContent()));
     }
 
     public void deleteRule(long id) {
-        //todo check if it was deleted throw an exception.
-        ruleRepository.deleteById(id);
-        reload();
+        Optional<RuleModel> model = ruleRepository.findById(id);
+        if (model.isPresent()) {
+            droolsEngine.removeRuleFromSystem(model.get().getRuleKey());
+            ruleRepository.deleteById(id);
+        }
     }
 
     @Override
