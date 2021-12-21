@@ -1,7 +1,7 @@
 package com.spirent.drools.rest.crud;
 
 import com.spirent.drools.dto.rules.Rule;
-import com.spirent.drools.service.impl.RulesServiceImpl;
+import com.spirent.drools.service.rule.impl.RulesServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

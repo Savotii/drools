@@ -1,11 +1,11 @@
 package com.spirent.drools.listeners;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kie.api.definition.rule.Rule;
 import org.kie.api.event.rule.AfterMatchFiredEvent;
 import org.kie.api.event.rule.DefaultAgendaEventListener;
 import org.kie.api.runtime.rule.Match;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,9 +18,9 @@ import java.util.Map;
  * @since 16.12.2021
  */
 @Slf4j
+@RequiredArgsConstructor
 public class TrackingAgendaEventListener extends DefaultAgendaEventListener {
-
-    private List<Match> matchList = new ArrayList<>();
+    private final List<Match> matchList = new ArrayList<>();
 
     @Override
     public void afterMatchFired(AfterMatchFiredEvent event) {
@@ -28,7 +28,6 @@ public class TrackingAgendaEventListener extends DefaultAgendaEventListener {
 
         String ruleName = rule.getName();
         Map<String, Object> ruleMetaDataMap = rule.getMetaData();
-
         matchList.add(event.getMatch());
         StringBuilder sb = new StringBuilder("Rule fired: " + ruleName);
 

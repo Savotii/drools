@@ -1,10 +1,11 @@
-package com.spirent.drools.service.impl;
+package com.spirent.drools.service.ruleengine.impl;
 
 import com.spirent.drools.dto.kpi.Kpi;
+import com.spirent.drools.dto.kpi.request.KpiRequest;
 import com.spirent.drools.dto.rules.globals.GlobalBoolean;
 import com.spirent.drools.dto.rules.globals.GlobalRuleCounter;
 import com.spirent.drools.listeners.TrackingAgendaEventListener;
-import com.spirent.drools.service.RulesEngineService;
+import com.spirent.drools.service.ruleengine.RulesEngineService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -18,9 +19,9 @@ import org.kie.api.runtime.rule.Match;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author ysavi2
@@ -30,18 +31,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 @RequiredArgsConstructor
 public class DroolsEngineServiceImpl implements RulesEngineService {
-    private static Integer counter = 1;
-    private static String groupId = "com.spirent";
-    private static String artifactId = "drools";
-    private static AtomicInteger version = new AtomicInteger(0);
     public static final String SRC_MAIN_RESOURCES_PATH = "src/main/resources/";
     public static final String DRL_EXTENSION = ".drl";
-    //    private KieContainer container;
-//    private KieFileSystem kfs;
-    private KieServices services = KieServices.Factory.get();
-    //    private KieRepository kieRepository;
-//    private KieSession session;
-//    private KieBase kieBase;
+    private final KieServices services = KieServices.Factory.get();
+
     @Autowired
     private KieContainer container;
     @Autowired
@@ -53,7 +46,7 @@ public class DroolsEngineServiceImpl implements RulesEngineService {
         rules.forEach((ruleName, drlContent) -> kfs.write(getPath(ruleName), drlContent));
         rebuildFileSystem();
         rebuildContainerAndSession();
-        setGlobalVariables(session);
+        setGlobalVariables();
     }
 
     @Override
@@ -61,7 +54,7 @@ public class DroolsEngineServiceImpl implements RulesEngineService {
         kfs.write(getPath(ruleKey), drlContent);
         rebuildFileSystem();
         rebuildContainerAndSession();
-        setGlobalVariables(session);
+        setGlobalVariables();
         //todo check the globals
     }
 
@@ -78,12 +71,25 @@ public class DroolsEngineServiceImpl implements RulesEngineService {
     }
 
     @Override
-    public void fireAllRules(Kpi kpiRequest) {
-        TrackingAgendaEventListener ruleListener = new TrackingAgendaEventListener();
+    public List<Match> fireAllRules(Kpi kpiRequest) {
+        TrackingAgendaEventListener trackListener = new TrackingAgendaEventListener();
+        session.addEventListener(trackListener);
         session.insert(kpiRequest);
         session.fireAllRules();
-        List<Match> matchList = ruleListener.getMatchList();
-        matchList.forEach(m -> log.info("Match info {}", m.toString()));
+        List<Match> matches = new ArrayList<>(trackListener.getMatchList());
+        trackListener.reset();
+        return matches;
+    }
+
+    @Override
+    public List<Match> fireAllRules(KpiRequest request) {
+        TrackingAgendaEventListener trackListener = new TrackingAgendaEventListener();
+        session.addEventListener(trackListener);
+        request.getKpis().forEach(session::insert);
+        session.fireAllRules();
+        List<Match> matchList = new ArrayList<>(trackListener.getMatchList());
+        trackListener.reset();
+        return matchList;
     }
 
     private String getPath(String ruleKey) {
@@ -97,6 +103,7 @@ public class DroolsEngineServiceImpl implements RulesEngineService {
     private void rebuildContainerAndSession() {
         final KieRepository kieRepository = services.getRepository();
         container = services.newKieContainer(kieRepository.getDefaultReleaseId());
+        session.destroy();
         session = container.newKieSession();
     }
 
@@ -105,8 +112,12 @@ public class DroolsEngineServiceImpl implements RulesEngineService {
         kieBuilder.buildAll();
     }
 
-    private void setGlobalVariables(KieSession session) {
-        session.setGlobal("flag", new GlobalBoolean());
-        session.setGlobal("counter", new GlobalRuleCounter());
+    private void setGlobalVariables() {
+        try {
+            session.setGlobal("flag", new GlobalBoolean());
+            session.setGlobal("counter", new GlobalRuleCounter());
+        } catch (Exception e) {
+            log.error("[Drools service] Global variables were not set up.", e);
+        }
     }
 }

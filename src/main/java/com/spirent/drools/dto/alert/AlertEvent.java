@@ -1,6 +1,8 @@
 package com.spirent.drools.dto.alert;
 
-import com.spirent.drools.dto.kpi.FailedKpi;
+import com.spirent.drools.dto.KpiAbstract;
+import com.spirent.drools.dto.kpi.alert.FailedKpi;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -14,27 +16,22 @@ import java.util.List;
  * @since 16.12.2021
  */
 @Data
-@ToString
-@EqualsAndHashCode
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class AlertEvent {
-    private Instant timestamp;
+public class AlertEvent extends KpiAbstract {
+    @Schema(description = "Date of the raised incident.", example = "2021-12-10T13:12:10Z")
+    private Instant timestamp = Instant.now();
+    @Schema(description = "")
     private String id;
-    private String name;
+    @Schema(description = "Rule which has been failed.")
+    private String name = "High latency alert";
+    @Schema(description = "alert type", example = "CRITICAL, WARN etc.")
     private AlertLevel level;
-    private String agentId;
-    private String agentTestName;
-    private String testSessionId;
-    private String testId;
-    private String agentTestId;
-    private String workflowId;
-    private String overlayId;
-
-    //todo we do not know where is it from. by default will be equal to testId
-    private String networkElementId;
-
-    private AlertCategory category;
-    private String pkg;
-    private String testName;
+    @Schema(description = "List of the failed kpis", type = "array", example = "{\n" +
+            "      \"id\": \"hostLatency\",\n" +
+            "      \"value\": 34534,\n" +
+            "      \"threshold\" : 1000\n" +
+            "    }")
     private List<FailedKpi> failedKpis;
 }

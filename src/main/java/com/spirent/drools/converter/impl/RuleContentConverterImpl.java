@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.drools.compiler.lang.DroolsSoftKeywords.ATTRIBUTES;
@@ -21,6 +22,7 @@ import static org.drools.compiler.lang.DroolsSoftKeywords.GLOBAL;
 import static org.drools.compiler.lang.DroolsSoftKeywords.IMPORT;
 import static org.drools.compiler.lang.DroolsSoftKeywords.PACKAGE;
 import static org.drools.compiler.lang.DroolsSoftKeywords.RULE;
+import static org.drools.compiler.lang.DroolsSoftKeywords.SALIENCE;
 import static org.drools.compiler.lang.DroolsSoftKeywords.THEN;
 import static org.drools.compiler.lang.DroolsSoftKeywords.WHEN;
 
@@ -70,6 +72,7 @@ public class RuleContentConverterImpl implements RuleContentConverter {
                     clause.setRuleName(previousRuleName);
                     clauses.putIfAbsent(previousRuleName, clause);
                 }
+                case SALIENCE -> convertAndSetSalienceFromStringToContent(clauses.get(previousRuleName), block);
                 case WHEN -> convertAndSetWhenStringToContent(clauses.get(previousRuleName), block);
                 case THEN -> convertAndSetThenStringToContent(clauses.get(previousRuleName), block);
                 default -> log.info("Nothing to convert yet.");
@@ -137,6 +140,17 @@ public class RuleContentConverterImpl implements RuleContentConverter {
         return value.replace(RULE, StringUtils.EMPTY).replace(QUOTE, StringUtils.EMPTY).trim();
     }
 
+    private void convertAndSetSalienceFromStringToContent(RuleClause clause, String value) {
+
+        if (value == null) return;
+        value = value.replace(SALIENCE, StringUtils.EMPTY).trim();
+        try {
+            clause.setSalience(Long.parseLong(value));
+        } catch (Exception e) {
+            log.error("Salience conversion is failed", e);
+        }
+    }
+
     private void convertAndSetWhenStringToContent(RuleClause clause, String value) {
         clause.setWhenClause(value.replace(WHEN, StringUtils.EMPTY).trim());
     }
@@ -194,6 +208,7 @@ public class RuleContentConverterImpl implements RuleContentConverter {
          */
         clauses.forEach(cl -> {
             fillRuleName(sb, cl.getRuleName());
+            fillSalience(sb, Optional.ofNullable(cl.getSalience()));
             fillWhenClause(sb, cl.getWhenClause());
             fillThenClause(sb, cl.getThenClause());
             fillEndBlock(sb);
@@ -213,6 +228,9 @@ public class RuleContentConverterImpl implements RuleContentConverter {
         return QUOTE + ruleName + QUOTE;
     }
 
+    private void fillSalience(StringBuilder sb, Optional<Long> salience) {
+        salience.ifPresent(sal -> sb.append(SALIENCE).append(StringUtils.SPACE).append(sal).append(LINE_SEPARATOR_SYMBOL).append(BREAK_LINE_SYMBOL));
+    }
 
     private void fillWhenClause(StringBuilder sb, String whenClause) {
         sb.append(WHEN).append(StringUtils.SPACE).append(whenClause).append(LINE_SEPARATOR_SYMBOL).append(BREAK_LINE_SYMBOL);

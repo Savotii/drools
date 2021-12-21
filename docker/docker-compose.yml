@@ -1,4 +1,12 @@
-version: '3.3'
+version: '3.7'
+
+volumes:
+  prometheus_data: { }
+  grafana_data: { }
+
+networks:
+  front-tier:
+  back-tier:
 
 services:
 
@@ -49,8 +57,26 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ~/documents/env/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+     - 9090:9090
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: monitoring_node_exporter
+    restart: unless-stopped
+    expose:
+      - 9100
+
   grafana:
-    image: grafana/grafana-enterprise:8.2.0
+    image: grafana/grafana:latest
+    volumes:
+#      - ~/grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ~/documents/env/grafana/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
     ports:
       - 3000:3000
-    user: '472'
+    links:
+      - prometheus

@@ -1,4 +1,4 @@
-package com.spirent.drools.service;
+package com.spirent.drools.service.rule;
 
 import com.spirent.drools.dto.rules.Rule;
 

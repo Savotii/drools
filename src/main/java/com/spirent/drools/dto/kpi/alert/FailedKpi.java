@@ -1,5 +1,7 @@
-package com.spirent.drools.dto.kpi;
+package com.spirent.drools.dto.kpi.alert;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.spirent.drools.dto.kpi.type.KpiType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -12,8 +14,10 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 public class FailedKpi {
-    private long id;
-    private TestType type;
+    private String name;
+
+    @JsonIgnore
+    private KpiType type;
     private long latency;
     private long threshold;
 }

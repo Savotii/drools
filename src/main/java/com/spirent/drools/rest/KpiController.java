@@ -1,7 +1,9 @@
 package com.spirent.drools.rest;
 
+import com.spirent.drools.dto.alert.AlertEvent;
 import com.spirent.drools.dto.kpi.Kpi;
-import com.spirent.drools.service.KpiService;
+import com.spirent.drools.dto.kpi.request.KpiRequest;
+import com.spirent.drools.service.kpi.KpiService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -37,6 +39,23 @@ public class KpiController {
     @GetMapping("/validate")
     public ResponseEntity<Kpi> validate(@RequestBody Kpi kpiRequest) {
         Set<ConstraintViolation<Kpi>> validated = validator.validate(kpiRequest);
+        if (!validated.isEmpty()) {
+            throw new ValidationException(
+                    validated.stream()
+                            .map(v -> String.format("Field %s - %s. %n ", v.getPropertyPath(), v.getMessage()))
+                            .collect(Collectors.joining())
+            );
+        }
+        return ResponseEntity.ok(kpiService.validateRules(kpiRequest));
+    }
+
+    @Operation(description = "Validate the provided kpi by Rule engine.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200")
+    })
+    @GetMapping("/validateKpi")
+    public ResponseEntity<AlertEvent> validateKpi(@RequestBody KpiRequest kpiRequest) {
+        Set<ConstraintViolation<KpiRequest>> validated = validator.validate(kpiRequest);
         if (!validated.isEmpty()) {
             throw new ValidationException(
                     validated.stream()
