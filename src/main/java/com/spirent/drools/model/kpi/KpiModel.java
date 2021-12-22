@@ -1,4 +1,4 @@
-package com.spirent.drools.model.kpi.KpiModel;
+package com.spirent.drools.model.kpi;
 
 import com.spirent.drools.dto.kpi.KpiPhase;
 import com.spirent.drools.model.LocationModel;
@@ -16,6 +16,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -27,6 +28,9 @@ import java.io.Serializable;
 @Setter
 @Getter
 public class KpiModel implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = -1924443284744209869L;
 
     @Id
     @GeneratedValue

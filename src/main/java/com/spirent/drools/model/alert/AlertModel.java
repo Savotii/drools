@@ -72,6 +72,5 @@ public class AlertModel {
     private AlertLevel level;
 
     @OneToMany(mappedBy = "alert", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.EAGER, orphanRemoval = true)
-//    @JoinColumn(name = "alert_id", referencedColumnName = "id")
     private List<FailedKpiModel> failedKpis;
 }

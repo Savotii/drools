@@ -1,6 +1,5 @@
 package com.spirent.drools.dto.kpi;
 
-import com.spirent.drools.dto.kpi.type.KpiType;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -11,7 +10,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class KpiLatency {
-    private final long THRESHOLD = 1000;
+    private long threshold;
     private String id;
     private long latency;
 }

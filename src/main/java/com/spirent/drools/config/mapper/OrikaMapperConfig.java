@@ -9,7 +9,7 @@ import com.spirent.drools.dto.kpi.request.KpiRequest;
 import com.spirent.drools.dto.rules.Rule;
 import com.spirent.drools.model.alert.AlertModel;
 import com.spirent.drools.model.alert.FailedKpiModel;
-import com.spirent.drools.model.kpi.KpiModel.KpiModel;
+import com.spirent.drools.model.kpi.KpiModel;
 import com.spirent.drools.model.rule.RuleModel;
 import lombok.RequiredArgsConstructor;
 import ma.glasnost.orika.CustomMapper;
@@ -54,7 +54,6 @@ public class OrikaMapperConfig extends ConfigurableMapper {
         @Override
         public void mapAtoB(AlertModel alertModel, AlertEvent alertEvent, MappingContext context) {
             List<FailedKpiModel> failedKpiModels = mapperFacade.mapAsList(alertEvent.getFailedKpis(), FailedKpiModel.class);
-//            failedKpiModels.forEach(f -> f.setAlertId(alertModel.getId()));
             alertModel.setFailedKpis(failedKpiModels);
         }
     }

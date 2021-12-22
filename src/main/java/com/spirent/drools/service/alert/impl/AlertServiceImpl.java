@@ -4,6 +4,7 @@ import com.spirent.drools.config.mapper.OrikaMapperConfig;
 import com.spirent.drools.dto.alert.AlertEvent;
 import com.spirent.drools.dto.kpi.KpiLatency;
 import com.spirent.drools.dto.kpi.alert.FailedKpi;
+import com.spirent.drools.dto.rules.filter.KpiThresholdFilter;
 import com.spirent.drools.model.alert.AlertModel;
 import com.spirent.drools.repository.AlertRepository;
 import com.spirent.drools.service.alert.AlertService;
@@ -17,8 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * @author ysavi2
@@ -47,11 +46,11 @@ public class AlertServiceImpl implements AlertService {
     public List<FailedKpi> buildFailedKpiLatencyAlert(List<Match> matches) {
         List<FailedKpi> result = new LinkedList<>();
         for (Match match : matches) {
-            List<KpiLatency> kpis = match.getObjects().stream().map(KpiLatency.class::cast).collect(Collectors.toList());
+            List<KpiLatency> kpis = match.getObjects().stream().map(KpiLatency.class::cast).toList();
             kpis.stream().map(kpl -> {
                 FailedKpi failedKpi = new FailedKpi();
                 failedKpi.setLatency(kpl.getLatency());
-                failedKpi.setThreshold(kpl.getTHRESHOLD());
+                failedKpi.setThreshold(kpl.getThreshold());
                 failedKpi.setName(match.getRule().getName());
                 return failedKpi;
             }).forEach(result::add);
@@ -63,7 +62,6 @@ public class AlertServiceImpl implements AlertService {
     @Override
     public void saveEvent(AlertEvent alert) {
         AlertModel model = orikaMapper.map(alert, AlertModel.class);
-        model.setAlertId(UUID.randomUUID().toString());
         model.setAlertName(alert.getName());
         model.getFailedKpis().forEach(f -> f.setAlert(model));
         repository.save(model);

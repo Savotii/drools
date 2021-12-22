@@ -1,5 +1,6 @@
 package com.spirent.drools.dto.alert;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.spirent.drools.dto.KpiAbstract;
 import com.spirent.drools.dto.kpi.alert.FailedKpi;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,8 +23,8 @@ import java.util.List;
 public class AlertEvent extends KpiAbstract {
     @Schema(description = "Date of the raised incident.", example = "2021-12-10T13:12:10Z")
     private Instant timestamp = Instant.now();
-    @Schema(description = "")
-    private String id;
+    @Schema(description = "UUID")
+    private String alertId;
     @Schema(description = "Rule which has been failed.")
     private String name = "High latency alert";
     @Schema(description = "alert type", example = "CRITICAL, WARN etc.")

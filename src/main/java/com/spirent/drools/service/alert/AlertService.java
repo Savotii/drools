@@ -4,6 +4,7 @@ import com.spirent.drools.dto.alert.AlertCategory;
 import com.spirent.drools.dto.alert.AlertEvent;
 import com.spirent.drools.dto.alert.AlertLevel;
 import com.spirent.drools.dto.kpi.alert.FailedKpi;
+import com.spirent.drools.dto.rules.filter.KpiThresholdFilter;
 import org.kie.api.runtime.rule.Match;
 
 import java.util.List;

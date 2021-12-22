@@ -32,10 +32,9 @@ public class TrackingAgendaEventListener extends DefaultAgendaEventListener {
         StringBuilder sb = new StringBuilder("Rule fired: " + ruleName);
 
         if (ruleMetaDataMap.size() > 0) {
-            sb.append("\n  With [" + ruleMetaDataMap.size() + "] meta-data:");
+            sb.append("\n  With [").append(ruleMetaDataMap.size()).append("] meta-data:");
             for (String key : ruleMetaDataMap.keySet()) {
-                sb.append("\n    key=" + key + ", value="
-                        + ruleMetaDataMap.get(key));
+                sb.append("\n    key=").append(key).append(", value=").append(ruleMetaDataMap.get(key));
             }
         }
 

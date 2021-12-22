@@ -26,6 +26,7 @@
 		<swagger-annotation.version>2.1.11</swagger-annotation.version>
 		<openapi-ui.version>1.5.11</openapi-ui.version>
 		<orika.version>1.5.4</orika.version>
+		<hibernate-types.version>2.14.0</hibernate-types.version>
 	</properties>
 
 	<dependencyManagement>
@@ -51,6 +52,11 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.vladmihalcea</groupId>
+			<artifactId>hibernate-types-55</artifactId>
+			<version>${hibernate-types.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.postgresql</groupId>

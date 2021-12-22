@@ -19,9 +19,9 @@ import java.io.Serializable;
 @Accessors(chain = true)
 public class RuleModel implements Serializable {
 	@Serial
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 6167361538548193796L;
 
-    @Id
+	@Id
 	@GeneratedValue
 	private Long id;
 	@Column(nullable = false, unique = true)

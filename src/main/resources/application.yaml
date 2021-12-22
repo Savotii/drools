@@ -32,3 +32,6 @@ kafka:
   topics:
     failure_topic: rules_failed
     success_topic: rules_success
+
+scheduler:
+  update_threshold_period: 5000 #ms.

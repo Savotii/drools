@@ -15,6 +15,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.io.Serial;
+import java.io.Serializable;
 
 /**
  * @author ysavi2
@@ -28,7 +30,11 @@ import javax.persistence.Table;
 @ToString
 @NoArgsConstructor
 @Accessors(chain = true)
-public class FailedKpiModel {
+public class FailedKpiModel implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = -3310230806139031559L;
+
     @Id
     @GeneratedValue
     private Long id;
